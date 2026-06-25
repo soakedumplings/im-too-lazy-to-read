@@ -1,6 +1,18 @@
-import google.generativeai as genai
+import logging
 
-MODEL_NAME = "gemini-2.5-flash"
+import google.generativeai as genai
+from google.api_core.exceptions import ResourceExhausted
+
+logger = logging.getLogger(__name__)
+
+# Tried in order. Each Gemini model has its own quota, so if one is
+# rate-limited / exhausted (HTTP 429) we fall back to the next.
+MODEL_NAMES = [
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+]
 
 EMPTY_NOTICE = "Nothing to summarize yet — no new messages since the last summary."
 
@@ -46,6 +58,13 @@ def summarize(messages: list[tuple[str, str]]) -> str:
         return EMPTY_NOTICE
     transcript = build_transcript(messages)
     prompt = _PROMPT_TEMPLATE.format(transcript=transcript)
-    model = genai.GenerativeModel(MODEL_NAME)
-    response = model.generate_content(prompt)
-    return response.text
+    last_error: Exception | None = None
+    for model_name in MODEL_NAMES:
+        try:
+            model = genai.GenerativeModel(model_name)
+            response = model.generate_content(prompt)
+            return response.text
+        except ResourceExhausted as exc:
+            logger.warning("Model %s quota exhausted, trying next", model_name)
+            last_error = exc
+    raise RuntimeError("All Gemini models are rate-limited") from last_error
