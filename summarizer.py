@@ -17,9 +17,13 @@ there's genuinely something funny or amusing in the conversation worth a \
 quip — otherwise just summarize plainly. Don't force jokes.
 
 Format:
-- The important points as short bullets, one speaker contribution per bullet:
+- The important points as short bullets, one speaker contribution per bullet, \
+  with a blank line between each bullet for readability:
+
   - Alice: <concise important point>
+
   - Bob: <concise important point>
+
 - If there was notable small talk or off-topic chatter, add one short line \
   titled "The rest:" briefly recapping it. Skip this line if there's nothing \
   worth mentioning.
